@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  app:
+    build: ./docker/php
+    container_name: lk_app
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - db
+
+  web:
+    build: ./docker/nginx
+    container_name: lk_web
+    ports:
+      - "9999:80"
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - app
+
+  db:
+    image: postgres:16
+    container_name: lk_db
+    environment:
+      POSTGRES_DB: lk
+      POSTGRES_USER: lk
+      POSTGRES_PASSWORD: lkpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
