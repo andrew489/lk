@@ -27,4 +27,3 @@ class EodApplication extends Model
         'meta' => 'array',
     ];
 }
-

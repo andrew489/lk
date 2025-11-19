@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\ContractApplication;
 use App\Models\TransferMoneyApplication;
 use App\Models\EodApplication;
-use App\Models\User;
 
 class ClientController extends Controller
 {
@@ -281,10 +280,7 @@ class ClientController extends Controller
             'contact_tel' => '',
             'submission_method' => '',
         ];
-        $contracts = ContractApplication::where('user_id', auth()->id())
-            ->orderByDesc('created_at')
-            ->get();
-        return view('client.eod_create', compact('prefill','contracts'));
+        return view('client.eod_create', compact('prefill'));
     }
 
     public function storeEod(Request $request)
@@ -343,10 +339,7 @@ class ClientController extends Controller
             'org_okpo' => '',
             'signer' => $user->name ?? '',
         ];
-        $contracts = ContractApplication::where('user_id', auth()->id())
-            ->orderByDesc('created_at')
-            ->get();
-        return view('client.transfer_money_create', compact('prefill','contracts'));
+        return view('client.transfer_money_create', compact('prefill'));
     }
 
     public function storeTransferMoney(Request $request)
@@ -624,11 +617,5 @@ class ClientController extends Controller
         ];
 
         return view('client.acts_services', compact('items'));
-    }
-
-    public function users(): View
-    {
-        $users = User::select('id','name','email','created_at')->orderBy('id')->get();
-        return view('client.users', compact('users'));
     }
 }

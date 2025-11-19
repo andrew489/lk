@@ -3,45 +3,22 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ClientController;
 
 Route::get('/', function () {
-    return Auth::check() ? redirect('/client/contracts') : redirect('/login');
+    return Auth::check() ? redirect('/client/main') : redirect('/login');
 });
 
 // Авторизация (демо): форма и редирект на клиентский раздел
 Route::get('/login', function () {
-    return Auth::check() ? redirect('/client/main') : view('auth.login2');
+    return Auth::check() ? redirect('/client/main') : view('auth.login');
 })->name('login');
 Route::post('/login', function (Request $request) {
-    $data = $request->validate([
-        'email' => ['required','email'],
-        'password' => ['required','string','min:8'],
-    ]);
-    $credentials = [
-        'email' => strtolower(trim($data['email'])),
-        'password' => $data['password'],
-    ];
+    $credentials = $request->only('email', 'password');
     if (Auth::attempt($credentials, true)) {
         $request->session()->regenerate();
         return redirect('/client/main');
-    }
-    $user = \App\Models\User::where('email', $credentials['email'])->first();
-    if ($user) {
-        if (Hash::check($credentials['password'], $user->getAuthPassword())) {
-            Auth::login($user, true);
-            $request->session()->regenerate();
-            return redirect('/client/main');
-        }
-        if ($user->getAuthPassword() === $credentials['password']) {
-            $user->password = $credentials['password'];
-            $user->save();
-            Auth::login($user, true);
-            $request->session()->regenerate();
-            return redirect('/client/main');
-        }
     }
     return back()->withErrors(['email' => 'Неверные учётные данные'])->withInput();
 });
@@ -72,8 +49,6 @@ Route::post('/register', function (Request $request) {
 // Клиентский раздел
 Route::prefix('client')->middleware('auth')->group(function () {
     Route::get('/main', [ClientController::class, 'main']);
-    // Переадресация с главной на договоры
-    Route::get('/main', function () { return redirect('/client/contracts'); });
     Route::get('/contracts', [ClientController::class, 'contracts']);
     Route::get('/contracts/applications', [ClientController::class, 'contractsApplications']);
     Route::post('/contracts/new', [ClientController::class, 'createContractApplication'])->name('contracts.new');
@@ -90,5 +65,4 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::get('/acts-services', [ClientController::class, 'actsServices']);
     Route::get('/service/acts', [ClientController::class, 'actsServices']);
     Route::get('/service/acts/', [ClientController::class, 'actsServices']);
-    Route::get('/users', [ClientController::class, 'users']);
   });
